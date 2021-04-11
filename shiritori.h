@@ -1,0 +1,6 @@
+#ifndef SHIRITORIGAME_SHIRITORI_H
+#define SHIRITORIGAME_SHIRITORI_H
+
+#include "shiritori.cpp"
+
+#endif //SHIRITORIGAME_SHIRITORI_H
