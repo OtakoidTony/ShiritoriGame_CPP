@@ -1,5 +1,5 @@
 #include <iostream>
-#include "shiritori.h"
+#include "shiritori.cpp"
 
 using namespace std;
 

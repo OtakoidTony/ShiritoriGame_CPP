@@ -34,6 +34,10 @@ namespace Shiritori {
         friend bool operator==(const Player &p1, const Player &p2) {
             return p1.name == p2.name;
         }
+
+        friend bool operator!=(const Player &p1, const Player &p2){
+            return !(p1==p2);
+        }
     };
 
     class Game {
@@ -86,7 +90,7 @@ namespace Shiritori {
             if (lastWord.empty()) {
                 return CheckResult::FIRST_WORD;
             }
-            if (player == players[times % headcount]) {
+            if (player != players[times % headcount]) {
                 return CheckResult::NOT_PLAYER_TURN;
             }
             if (!isAvailableWord(word)) {
