@@ -3,126 +3,105 @@
 #include <list>
 #include <utility>
 
+#include "shiritori.h"
 
 using namespace std;
 
-namespace Shiritori {
-    enum CheckResult {
-        SAFE_WORD,
-        FIRST_WORD,
-        INVALID_FIRST_CHARACTER,
-        USED_WORD,
-        NOT_PLAYER_TURN,
-        UNAVAILABLE_WORD
-    };
 
-    class Player {
-        string name;
-    public:
-        Player() = default;
+Shiritori::Player::Player(string name) : name{std::move(name)} {};
 
-        explicit Player(string name) : name{std::move(name)} {};
+void Shiritori::Player::setName(string name) {
+    this->name = name;
+}
 
-        void setName(string name) {
-            this->name = name;
-        }
+string Shiritori::Player::getName() {
+    return name;
+}
 
-        string getName() {
-            return name;
-        }
+bool Shiritori::operator==(const Shiritori::Player &p1, const Shiritori::Player &p2) {
+    return p1.name == p2.name;
+}
 
-        friend bool operator==(const Player &p1, const Player &p2) {
-            return p1.name == p2.name;
-        }
+bool Shiritori::operator!=(const Shiritori::Player &p1, const Shiritori::Player &p2) {
+    return !(p1 == p2);
+}
 
-        friend bool operator!=(const Player &p1, const Player &p2){
-            return !(p1==p2);
-        }
-    };
+Shiritori::Game::Game(int headcount) : headcount{headcount} {
+    players = new Player[headcount];
+};
 
-    class Game {
-        Player *players;
-        int headcount;
-        list<string> usedWords;
-        string lastWord = "";
-        int times = 0;
-        list<string> wordlist;
-    public:
-        explicit Game(int headcount) : headcount{headcount} {
-            players = new Player[headcount];
-        };
+int Shiritori::Game::getHeadcount() const { return headcount; }
 
-        int getHeadcount() const { return headcount; }
+void Shiritori::Game::setPlayer(int index, Player player) {
+    players[index] = std::move(player);
+}
 
-        void setPlayer(int index, Player player) {
-            players[index] = std::move(player);
-        }
+Player Shiritori::Game::getPlayer(int index) const { return players[index]; }
 
-        Player getPlayer(int index) const { return players[index]; }
+void Shiritori::Game::go(Player &player, const string &word) {
+    switch (check(player, word)) {
+        case CheckResult::SAFE_WORD:
+            printf("[%s] \"%s\" is passed\n", word.c_str(), word.c_str());
+            usedWords.push_back(word);
+            lastWord = word;
+            times++;
+            break;
+        case CheckResult::FIRST_WORD:
+            cout << "[" << word << "] " << "Start word is set to \"" << word << "\"" <<
+                 endl;
+            usedWords.push_back(word);
+            lastWord = word;
+            times++;
+            break;
+        case CheckResult::INVALID_FIRST_CHARACTER:
+            printf("[%s] First character of \"%s\" is not equal to '%c'",
+                   word.c_str(), word.c_str(),
+                   lastWord[lastWord.length() - 1]
+            );
+            break;
+        case CheckResult::USED_WORD:
+            printf("[%s] \"%s\" is a used word.\n", word.c_str(), word.c_str());
+            break;
+        case CheckResult::NOT_PLAYER_TURN:
+            cout << "Your word is ignored because of not your turn." << endl;
+            break;
+    }
+}
 
-        void go(const Player &player, const string &word) {
-            switch (check(player, word)) {
-                case CheckResult::SAFE_WORD:
-                    cout << "[" << word << "] " << "통과되었습니다." << endl;
-                    usedWords.push_back(word);
-                    lastWord = word;
-                    times++;
-                    break;
-                case CheckResult::FIRST_WORD:
-                    cout << "[" << word << "] " << "첫 단어를 발화하였습니다." << endl;
-                    usedWords.push_back(word);
-                    lastWord = word;
-                    times++;
-                    break;
-                case CheckResult::INVALID_FIRST_CHARACTER:
-                    cout << "[" << word << "] " << "입력하신 단어의 첫 글자가 마지막 단어의 마지막 글자와 다릅니다." << endl;
-                    break;
-                case CheckResult::USED_WORD:
-                    cout << "[" << word << "] " << "이미 사용한 단어입니다." << endl;
-                    break;
-                case CheckResult::NOT_PLAYER_TURN:
-                    cout << "아직 플레이어의 차례가 아닙니다." << endl;
-                    break;
-            }
-        }
+int Shiritori::Game::check(const Player &player, string word) {
+    if (lastWord.empty()) {
+        return CheckResult::FIRST_WORD;
+    }
+    if (player != players[times % headcount]) {
+        return CheckResult::NOT_PLAYER_TURN;
+    }
+    if (!isAvailableWord(word)) {
+        return CheckResult::UNAVAILABLE_WORD;
+    }
+    if (this->lastWord[(this->lastWord).length() - 1] != word[0]) {
+        return CheckResult::INVALID_FIRST_CHARACTER;
+    }
+    if (isUsed(word)) {
+        return CheckResult::USED_WORD;
+    }
+    return CheckResult::SAFE_WORD;
+}
 
-        int check(const Player &player, string word) {
-            if (lastWord.empty()) {
-                return CheckResult::FIRST_WORD;
-            }
-            if (player != players[times % headcount]) {
-                return CheckResult::NOT_PLAYER_TURN;
-            }
-            if (!isAvailableWord(word)) {
-                return CheckResult::UNAVAILABLE_WORD;
-            }
-            if (this->lastWord[(this->lastWord).length() - 1] != word[0]) {
-                return CheckResult::INVALID_FIRST_CHARACTER;
-            }
-            if (isUsed(word)) {
-                return CheckResult::USED_WORD;
-            }
-            return CheckResult::SAFE_WORD;
-        }
+bool Shiritori::Game::isAvailableWord(const string &word) {
+    if (wordlist.empty()) {
+        return true;
+    }
+    for (auto &availableWord : wordlist) {
+        if (availableWord == word)
+            return true;
+    }
+    return false;
+}
 
-    private:
-        bool isAvailableWord(const string &word) {
-            if (wordlist.empty()) {
-                return true;
-            }
-            for (auto &availableWord : wordlist) {
-                if (availableWord == word)
-                    return true;
-            }
-            return false;
-        }
-
-        bool isUsed(const string &word) {
-            for (auto &usedWord : usedWords) {
-                if (usedWord == word)
-                    return true;
-            }
-            return false;
-        }
-    };
+bool Shiritori::Game::isUsed(const string &word) {
+    for (auto &usedWord : usedWords) {
+        if (usedWord == word)
+            return true;
+    }
+    return false;
 }

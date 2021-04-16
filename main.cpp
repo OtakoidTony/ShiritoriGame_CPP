@@ -31,6 +31,8 @@ int main(int argc, char *argv[]) {
     game->go(*player3, "engine");
     cout << 5 << endl;
     game->go(*player1, "engine");
+    cout << 6 << endl;
+    game->go(*player1, "pass");
 
     return 0;
 }
