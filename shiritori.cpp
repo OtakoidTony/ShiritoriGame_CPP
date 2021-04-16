@@ -36,7 +36,7 @@ void Shiritori::Game::setPlayer(int index, Player player) {
     players[index] = std::move(player);
 }
 
-Player Shiritori::Game::getPlayer(int index) const { return players[index]; }
+Shiritori::Player Shiritori::Game::getPlayer(int index) const { return players[index]; }
 
 void Shiritori::Game::go(Player &player, const string &word) {
     switch (check(player, word)) {
