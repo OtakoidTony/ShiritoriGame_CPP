@@ -69,11 +69,11 @@ void Shiritori::Game::go(Player &player, const string &word) {
 }
 
 int Shiritori::Game::check(const Player &player, string word) {
-    if (lastWord.empty()) {
-        return CheckResult::FIRST_WORD;
-    }
     if (player != players[times % headcount]) {
         return CheckResult::NOT_PLAYER_TURN;
+    }
+    if (lastWord.empty()) {
+        return CheckResult::FIRST_WORD;
     }
     if (!isAvailableWord(word)) {
         return CheckResult::UNAVAILABLE_WORD;
